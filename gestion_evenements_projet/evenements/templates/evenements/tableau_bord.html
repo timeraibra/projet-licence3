@@ -1,0 +1,603 @@
+{% extends 'evenements/base.html' %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 3rem;
+    }
+    
+    .welcome-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+    }
+    
+    .stat-card-modern {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--gradient-from), var(--gradient-to));
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+        color: white;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .quick-action-card {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .quick-action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .event-list-item {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .event-list-item:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        transform: translateX(5px);
+    }
+    
+    .status-badge-custom {
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .progress-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: conic-gradient(
+            #667eea 0% var(--progress),
+            #e5e7eb var(--progress) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .progress-circle::before {
+        content: attr(data-progress) '%';
+        position: absolute;
+        width: 80%;
+        height: 80%;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #667eea, #764ba2);
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -2.5rem;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        background: #667eea;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px #667eea33;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header du dashboard -->
+<div class="dashboard-header">
+    <div class="container">
+        <div class="welcome-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div>
+                    <h1 class="mb-2">
+                        Bienvenue, {{ user.first_name|default:user.username }} ! 👋
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        <i class="bi bi-shield-check"></i> {{ user.get_role_display }}
+                    </p>
+                </div>
+                <div class="text-end">
+                    <div class="mb-1">
+                        <i class="bi bi-calendar-today"></i> {{ now|date:"l d F Y" }}
+                    </div>
+                    <div>
+                        <i class="bi bi-clock"></i> {{ now|date:"H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistiques -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="stat-card-modern" style="--gradient-from: #667eea; --gradient-to: #764ba2;">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="stat-number" id="statEvents">{{ stats.nb_evenements_organises }}</div>
+                <div class="stat-label">Événements organisés</div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="stat-card-modern" style="--gradient-from: #10b981; --gradient-to: #059669;">
+                <div class="stat-icon">
+                    <i class="bi bi-bookmark-check"></i>
+                </div>
+                <div class="stat-number" id="statInscriptions">{{ stats.nb_inscriptions }}</div>
+                <div class="stat-label">Inscriptions actives</div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="stat-card-modern" style="--gradient-from: #f59e0b; --gradient-to: #d97706;">
+                <div class="stat-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-number" id="statParticipants">{{ stats.nb_participants_total }}</div>
+                <div class="stat-label">Participants total</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Graphiques statistiques -->
+    <!-- <div class="row mb-5">
+        <div class="col-lg-8 mb-4">
+            <div class="card" style="border-radius: 20px; border: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart"></i> Statistiques des événements
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="eventChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card" style="border-radius: 20px; border: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pie-chart"></i> Répartition par catégorie
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    
+    <!-- Actions rapides -->
+    <div class="row mb-5">
+        <div class="col-12 mb-3">
+            <h3><i class="bi bi-lightning"></i> Actions rapides</h3>
+        </div>
+        {% if user.est_admin %}
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'gestion_utilisateurs' %}" class="quick-action-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <div class="quick-action-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h5 class="mb-0">Gérer les utilisateurs</h5>
+                </a>
+            </div>
+        {% endif %}
+        <div class="col-md-{% if user.est_admin %}3{% else %}4{% endif %} mb-3">
+            <a href="{% url 'creer_evenement' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="bi bi-plus-circle"></i>
+                </div>
+                <h5 class="mb-0">Créer un événement</h5>
+            </a>
+        </div>
+        <div class="col-md-{% if user.est_admin %}3{% else %}4{% endif %} mb-3">
+            <a href="{% url 'liste_evenements' %}" class="quick-action-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <div class="quick-action-icon">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h5 class="mb-0">Explorer les événements</h5>
+            </a>
+        </div>
+        <div class="col-md-{% if user.est_admin %}3{% else %}4{% endif %} mb-3">
+            <a href="{% url 'profil' %}" class="quick-action-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <div class="quick-action-icon">
+                    <i class="bi bi-person-gear"></i>
+                </div>
+                <h5 class="mb-0">Modifier mon profil</h5>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Événements en attente (Admin) -->
+    {% if user.est_admin and evenements_en_attente %}
+        <div class="card mb-5" style="border: 2px solid #f59e0b; border-radius: 20px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border-radius: 18px 18px 0 0;">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Événements en attente de validation
+                    <span class="badge bg-white text-warning ms-2">{{ evenements_en_attente.count }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for evenement in evenements_en_attente %}
+                    <div class="event-list-item">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-bold">{{ evenement.titre }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i> {{ evenement.organisateur.get_full_name }} • 
+                                    <i class="bi bi-calendar3"></i> {{ evenement.date_debut|date:"d/m/Y à H:i" }}
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <form method="post" action="{% url 'valider_evenement' evenement.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="action" value="valider" class="btn btn-success btn-sm">
+                                        <i class="bi bi-check-circle"></i> Valider
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'valider_evenement' evenement.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="action" value="refuser" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-x-circle"></i> Refuser
+                                    </button>
+                                </form>
+                                <a href="{% url 'detail_evenement' evenement.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Mes événements et inscriptions -->
+    <div class="row">
+        <!-- Mes événements organisés -->
+        <div class="col-lg-6 mb-4">
+            <div class="card" style="border-radius: 20px; border: none;">
+                <div class="card-header bg-primary text-white" style="border-radius: 18px 18px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-plus"></i> Mes événements
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if mes_evenements %}
+                        <div class="timeline">
+                            {% for evenement in mes_evenements|slice:":5" %}
+                                <div class="timeline-item">
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-bold">{{ evenement.titre }}</h6>
+                                            <small class="text-muted d-block mb-2">
+                                                <i class="bi bi-calendar3"></i> {{ evenement.date_debut|date:"d/m/Y" }}
+                                            </small>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <span class="status-badge-custom {% if evenement.statut == 'valide' %}bg-success{% elif evenement.statut == 'en_attente' %}bg-warning{% else %}bg-danger{% endif %} text-white">
+                                                    {{ evenement.get_statut_display }}
+                                                </span>
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="bi bi-people"></i> {{ evenement.nombre_inscrits }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'detail_evenement' evenement.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if mes_evenements.count > 5 %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'liste_evenements' %}" class="btn btn-outline-primary btn-sm">
+                                    Voir tous mes événements ({{ mes_evenements.count }})
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-x display-1 text-muted"></i>
+                            <p class="text-muted mt-3">Aucun événement organisé</p>
+                            <a href="{% url 'creer_evenement' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Créer mon premier événement
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mes inscriptions -->
+        <div class="col-lg-6 mb-4">
+            <div class="card" style="border-radius: 20px; border: none;">
+                <div class="card-header bg-success text-white" style="border-radius: 18px 18px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bookmark-check"></i> Mes inscriptions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if mes_inscriptions %}
+                        {% for inscription in mes_inscriptions|slice:":5" %}
+                            <div class="event-list-item">
+                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fw-bold">{{ inscription.evenement.titre }}</h6>
+                                        <small class="text-muted d-block mb-2">
+                                            <i class="bi bi-calendar3"></i> {{ inscription.evenement.date_debut|date:"d/m/Y à H:i" }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="bi bi-geo-alt"></i> {{ inscription.evenement.lieu }}
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'detail_evenement' inscription.evenement.pk %}" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        {% if mes_inscriptions.count > 5 %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'liste_evenements' %}" class="btn btn-outline-success btn-sm">
+                                    Voir toutes mes inscriptions ({{ mes_inscriptions.count }})
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-bookmark-x display-1 text-muted"></i>
+                            <p class="text-muted mt-3">Aucune inscription active</p>
+                            <a href="{% url 'liste_evenements' %}" class="btn btn-success">
+                                <i class="bi bi-search"></i> Découvrir les événements
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // ------- Fonction animation des nombres -------
+    function animateNumber(element, target, duration = 1000) {
+        const start = 0;
+        const increment = target / (duration / 16);
+        let current = start;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 16);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // ---------- Récupération des valeurs Django ----------
+        // const stats = {
+        //     events: {{ stats.nb_evenements_organises|default:0 }},
+        //     inscriptions: {{ stats.nb_inscriptions|default:0 }},
+        //     participants: {{ stats.nb_participants_total|default:0 }},
+
+        //     valid: {{ stats.nb_valides|default:0 }},
+        //     pending: {{ stats.nb_en_attente|default:0 }},
+        //     refused: {{ stats.nb_refuses|default:0 }},
+        //     canceled: {{ stats.nb_annules|default:0 }},
+
+        //     conferences: {{ stats.nb_conferences|default:0 }},
+        //     soutenances: {{ stats.nb_soutenances|default:0 }},
+        //     ateliers: {{ stats.nb_ateliers|default:0 }},
+        //     culturel: {{ stats.nb_culturel|default:0 }},
+        //     autres: {{ stats.nb_autres|default:0 }}
+        // };
+
+        // ---------- Animation des nombres ----------
+        const statEvents = document.getElementById('statEvents');
+        const statInscriptions = document.getElementById('statInscriptions');
+        const statParticipants = document.getElementById('statParticipants');
+
+        if (statEvents) animateNumber(statEvents, stats.events);
+        if (statInscriptions) animateNumber(statInscriptions, stats.inscriptions);
+        if (statParticipants) animateNumber(statParticipants, stats.participants);
+
+        // ---------- Graphique barres (statut des événements) ----------
+        const eventCtx = document.getElementById('eventChart');
+        if (eventCtx) {
+            new Chart(eventCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Validés', 'En attente', 'Refusés', 'Annulés'],
+                    datasets: [{
+                        label: "Nombre d'événements",
+                        data: [
+                            stats.valid,
+                            stats.pending,
+                            stats.refused,
+                            stats.canceled
+                        ],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(107, 114, 128, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(245, 158, 11)',
+                            'rgb(239, 68, 68)',
+                            'rgb(107, 114, 128)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ---------- Graphique doughnut (catégories) ----------
+        const categoryCtx = document.getElementById('categoryChart');
+        if (categoryCtx) {
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Conférences', 'Soutenances', 'Ateliers', 'Culturel', 'Autres'],
+                    datasets: [{
+                        data: [
+                            stats.conferences,
+                            stats.soutenances,
+                            stats.ateliers,
+                            stats.culturel,
+                            stats.autres
+                        ],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(107, 114, 128, 0.8)'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+    });
+</script>
+
+{% endblock %}

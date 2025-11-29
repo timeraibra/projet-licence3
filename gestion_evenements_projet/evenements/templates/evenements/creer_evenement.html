@@ -1,0 +1,116 @@
+{% extends 'evenements/base.html' %}
+
+{% block title %}Créer un événement{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> Créer un nouvel événement
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.titre.id_for_label }}" class="form-label">
+                                {{ form.titre.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.titre }}
+                            {% if form.titre.errors %}
+                                <div class="text-danger small">{{ form.titre.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                {{ form.description.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_debut.id_for_label }}" class="form-label">
+                                    {{ form.date_debut.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.date_debut }}
+                                {% if form.date_debut.errors %}
+                                    <div class="text-danger small">{{ form.date_debut.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_fin.id_for_label }}" class="form-label">
+                                    {{ form.date_fin.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.date_fin }}
+                                {% if form.date_fin.errors %}
+                                    <div class="text-danger small">{{ form.date_fin.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.lieu.id_for_label }}" class="form-label">
+                                {{ form.lieu.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.lieu }}
+                            {% if form.lieu.errors %}
+                                <div class="text-danger small">{{ form.lieu.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.categorie.id_for_label }}" class="form-label">
+                                    {{ form.categorie.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.categorie }}
+                                {% if form.categorie.errors %}
+                                    <div class="text-danger small">{{ form.categorie.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.capacite_max.id_for_label }}" class="form-label">
+                                    {{ form.capacite_max.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.capacite_max }}
+                                {% if form.capacite_max.errors %}
+                                    <div class="text-danger small">{{ form.capacite_max.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            Votre événement sera soumis pour validation par un administrateur avant d'être visible publiquement.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Créer l'événement
+                            </button>
+                            <a href="{% url 'tableau_bord' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

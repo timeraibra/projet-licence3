@@ -1,0 +1,375 @@
+{% extends 'evenements/base.html' %}
+
+{% block title %}Gestion des utilisateurs{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-card {
+        transition: all 0.3s ease;
+    }
+    
+    .user-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .user-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .user-table thead {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .user-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .user-table tbody tr:hover {
+        background: #f9fafb;
+        transform: scale(1.01);
+    }
+    
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .export-users-btn {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .export-users-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    
+    .stat-mini-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-mini-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* .stat-mini-number {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #90a0e8, #d9bff3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    } */
+
+    .stat-mini-number {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #90a0e8, #d9bff3);
+    text-shadow: 
+        2px 2px 0 #ccc,
+        4px 4px 0 #999;
+}
+
+    
+    .badge-custom {
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6">
+                        <i class="bi bi-people-fill text-primary"></i> Gestion des utilisateurs
+                    </h1>
+                    <p class="text-muted">Tous les utilisateurs inscrits sur la plateforme</p>
+                </div>
+                <button class="export-users-btn" onclick="exporterUtilisateurs()">
+                    <i class="bi bi-download"></i> Exporter la liste
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistiques mini -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-mini-card">
+                <div class="stat-mini-number">{{ stats.total_utilisateurs }}</div>
+                <div class="text-muted small">Total utilisateurs</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-mini-card">
+                <div class="stat-mini-number text-primary">{{ stats.total_etudiants }}</div>
+                <div class="text-muted small">Étudiants</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-mini-card">
+                <div class="stat-mini-number text-success">{{ stats.total_admins }}</div>
+                <div class="text-muted small">Administrateurs</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-mini-card">
+                <div class="stat-mini-number text-warning">{{ stats.nouveaux_7_jours }}</div>
+                <div class="text-muted small">Nouveaux (7 jours)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="filter-card">
+        <form method="get" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">
+                        <i class="bi bi-search"></i> Rechercher
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="recherche" 
+                           placeholder="Nom, prénom, email..." 
+                           value="{{ recherche }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="bi bi-shield-check"></i> Rôle
+                    </label>
+                    <select class="form-control" name="role">
+                        <option value="">Tous les rôles</option>
+                        <option value="etudiant" {% if role_filtre == 'etudiant' %}selected{% endif %}>Étudiant</option>
+                        <option value="admin" {% if role_filtre == 'admin' %}selected{% endif %}>Administrateur</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        <i class="bi bi-building"></i> Département
+                    </label>
+                    <select class="form-control" name="departement">
+                        <option value="">Tous les départements</option>
+                        {% for dept in departements %}
+                            <option value="{{ dept }}" {% if departement_filtre == dept %}selected{% endif %}>
+                                {{ dept }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Filtrer
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Tableau des utilisateurs -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul"></i> Liste des utilisateurs ({{ utilisateurs.count }})
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if utilisateurs %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 user-table">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
+                                <th>Département</th>
+                                <th>Téléphone</th>
+                                <th>Inscription</th>
+                                <th>Dernière connexion</th>
+                                <th>Activité</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for utilisateur in utilisateurs %}
+                                <tr data-username="{{ utilisateur.username }}"
+                                    data-nom="{{ utilisateur.get_full_name }}"
+                                    data-email="{{ utilisateur.email }}"
+                                    data-role="{{ utilisateur.get_role_display }}"
+                                    data-departement="{{ utilisateur.departement|default:'-' }}"
+                                    data-telephone="{{ utilisateur.telephone|default:'-' }}"
+                                    data-inscription="{{ utilisateur.date_joined|date:'d/m/Y à H:i' }}"
+                                    data-connexion="{{ utilisateur.last_login|date:'d/m/Y à H:i'|default:'Jamais' }}">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="user-avatar">
+                                                {{ utilisateur.first_name|first|upper }}{{ utilisateur.last_name|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ utilisateur.get_full_name }}</div>
+                                                <small class="text-muted">@{{ utilisateur.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-envelope text-primary"></i> 
+                                        {{ utilisateur.email }}
+                                    </td>
+                                    <td>
+                                        {% if utilisateur.role == 'admin' %}
+                                            <span class="badge badge-custom bg-danger">
+                                                <i class="bi bi-shield-fill"></i> {{ utilisateur.get_role_display }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-custom bg-primary">
+                                                <i class="bi bi-person"></i> {{ utilisateur.get_role_display }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if utilisateur.departement %}
+                                            <i class="bi bi-building"></i> {{ utilisateur.departement }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if utilisateur.telephone %}
+                                            <i class="bi bi-telephone"></i> {{ utilisateur.telephone }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ utilisateur.date_joined|date:"d/m/Y" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if utilisateur.last_login %}
+                                            <small>{{ utilisateur.last_login|date:"d/m/Y" }}</small>
+                                        {% else %}
+                                            <small class="text-muted">Jamais</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            <small>
+                                                <i class="bi bi-calendar-event text-primary"></i> 
+                                                {{ utilisateur.evenements_organises.count }} événements
+                                            </small>
+                                            <small>
+                                                <i class="bi bi-bookmark-check text-success"></i> 
+                                                {{ utilisateur.inscriptions.count }} inscriptions
+                                            </small>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-people display-1 text-muted"></i>
+                    <p class="text-muted mt-3">Aucun utilisateur trouvé</p>
+                    <a href="{% url 'gestion_utilisateurs' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-clockwise"></i> Réinitialiser les filtres
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exporterUtilisateurs() {
+    // Récupérer les données depuis les attributs data-*
+    const utilisateurs = [];
+    document.querySelectorAll('.user-table tbody tr').forEach(row => {
+        utilisateurs.push({
+            username: row.getAttribute('data-username'),
+            nom: row.getAttribute('data-nom'),
+            email: row.getAttribute('data-email'),
+            role: row.getAttribute('data-role'),
+            departement: row.getAttribute('data-departement'),
+            telephone: row.getAttribute('data-telephone'),
+            inscription: row.getAttribute('data-inscription'),
+            connexion: row.getAttribute('data-connexion')
+        });
+    });
+    
+    // Vérifier qu'il y a des utilisateurs
+    if (utilisateurs.length === 0) {
+        alert('Aucun utilisateur à exporter');
+        return;
+    }
+    
+    // Créer le CSV avec BOM UTF-8
+    let csv = '\uFEFF';
+    csv += 'Nom d\'utilisateur;Nom complet;Email;Rôle;Département;Téléphone;Date inscription;Dernière connexion\n';
+    
+    utilisateurs.forEach(u => {
+        csv += `"${u.username}";"${u.nom}";"${u.email}";"${u.role}";"${u.departement}";"${u.telephone}";"${u.inscription}";"${u.connexion}"\n`;
+    });
+    
+    // Créer et télécharger le fichier
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `utilisateurs_plateforme_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Libérer la mémoire
+    URL.revokeObjectURL(url);
+    
+    // Confirmation
+    alert('✅ Liste des utilisateurs exportée avec succès !\n' + utilisateurs.length + ' utilisateur(s)');
+}
+</script>
+{% endblock %}
