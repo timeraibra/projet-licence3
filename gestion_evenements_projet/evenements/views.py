@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -8,7 +5,12 @@ from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
 from .models import Utilisateur, Evenement, Inscription
-from .forms import InscriptionForm, ConnexionForm, EvenementForm, UtilisateurForm
+from .forms import InscriptionForm, ConnexionForm, EvenementForm, UtilisateurForm, ProfilForm
+from .emails import (
+    envoyer_email_inscription, 
+    envoyer_email_annulation, 
+    envoyer_email_validation_evenement
+)
 
 
 def accueil(request):
@@ -104,6 +106,7 @@ def tableau_bord(request):
         'mes_inscriptions': mes_inscriptions,
         'evenements_en_attente': evenements_en_attente,
         'stats': stats,
+        'now': timezone.now(),  # Ajout de la date actuelle
     }
     return render(request, 'evenements/tableau_bord.html', context)
 
@@ -235,6 +238,8 @@ def valider_evenement(request, pk):
     if action == 'valider':
         evenement.statut = 'valide'
         evenement.save()
+        # Envoyer email à l'organisateur
+        envoyer_email_validation_evenement(evenement)
         messages.success(request, f'Événement "{evenement.titre}" validé avec succès.')
     elif action == 'refuser':
         evenement.statut = 'refuse'
@@ -270,12 +275,15 @@ def inscrire_evenement(request, pk):
     )
     
     if created:
-        messages.success(request, 'Inscription confirmée !')
+        # Envoyer email de confirmation
+        envoyer_email_inscription(inscription)
+        messages.success(request, 'Inscription confirmée ! Un email de confirmation vous a été envoyé.')
     else:
         if inscription.statut == 'annulee':
             inscription.statut = 'confirmee'
             inscription.save()
-            messages.success(request, 'Inscription réactivée !')
+            envoyer_email_inscription(inscription)
+            messages.success(request, 'Inscription réactivée ! Un email de confirmation vous a été envoyé.')
         else:
             messages.info(request, 'Vous êtes déjà inscrit à cet événement.')
     
@@ -295,7 +303,9 @@ def annuler_inscription(request, pk):
         )
         inscription.statut = 'annulee'
         inscription.save()
-        messages.success(request, 'Inscription annulée.')
+        # Envoyer email d'annulation
+        envoyer_email_annulation(inscription)
+        messages.success(request, 'Inscription annulée. Un email de confirmation vous a été envoyé.')
     except Inscription.DoesNotExist:
         messages.error(request, "Vous n'êtes pas inscrit à cet événement.")
     
@@ -306,15 +316,17 @@ def annuler_inscription(request, pk):
 def profil(request):
     """Afficher et modifier le profil utilisateur"""
     if request.method == 'POST':
-        form = UtilisateurForm(request.POST, instance=request.user)
+        # Utiliser ProfilForm au lieu de UtilisateurForm
+        form = ProfilForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Profil mis à jour avec succès.')
             return redirect('profil')
     else:
-        form = UtilisateurForm(instance=request.user)
+        form = ProfilForm(instance=request.user)
     
     return render(request, 'evenements/profil.html', {'form': form})
+
 
 @login_required
 def gestion_utilisateurs(request):
@@ -372,5 +384,3 @@ def gestion_utilisateurs(request):
     }
     
     return render(request, 'evenements/gestion_utilisateurs.html', context)
-
-    

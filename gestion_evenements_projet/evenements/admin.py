@@ -1,4 +1,3 @@
-# Register your models here.
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Utilisateur, Evenement, Inscription
@@ -7,9 +6,12 @@ from .models import Utilisateur, Evenement, Inscription
 @admin.register(Utilisateur)
 class UtilisateurAdmin(UserAdmin):
     """Configuration de l'admin pour le modèle Utilisateur"""
-    list_display = ['username', 'email', 'first_name', 'last_name', 'role', 'departement']
-    list_filter = ['role', 'departement', 'is_staff', 'is_active']
+    list_display = ['username', 'email', 'first_name', 'last_name', 'role', 'departement', 'date_joined']
+    list_filter = ['role', 'departement', 'is_staff', 'is_active', 'date_joined']
     search_fields = ['username', 'first_name', 'last_name', 'email']
+    
+    # Ajout d'actions personnalisées
+    actions = ['promouvoir_admin', 'retirer_admin']
     
     fieldsets = UserAdmin.fieldsets + (
         ('Informations supplémentaires', {
@@ -22,6 +24,18 @@ class UtilisateurAdmin(UserAdmin):
             'fields': ('role', 'departement', 'telephone', 'first_name', 'last_name', 'email')
         }),
     )
+    
+    def promouvoir_admin(self, request, queryset):
+        """Action pour promouvoir des utilisateurs en administrateurs"""
+        count = queryset.update(role='admin', is_staff=True)
+        self.message_user(request, f'{count} utilisateur(s) promu(s) administrateur.')
+    promouvoir_admin.short_description = "🔼 Promouvoir en Administrateur"
+    
+    def retirer_admin(self, request, queryset):
+        """Action pour retirer le rôle admin"""
+        count = queryset.update(role='etudiant', is_staff=False)
+        self.message_user(request, f'{count} utilisateur(s) rétrogradé(s) en Étudiant.')
+    retirer_admin.short_description = "🔽 Rétrograder en Étudiant"
 
 
 @admin.register(Evenement)

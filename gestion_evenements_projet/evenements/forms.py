@@ -37,14 +37,13 @@ class UtilisateurForm(UserCreationForm):
     
     class Meta:
         model = Utilisateur
-        fields = ['username', 'first_name', 'last_name', 'email', 'departement', 'telephone', 'role', 'password1', 'password2']
+        # ❌ 'role' RETIRÉ de la liste des champs
+        fields = ['username', 'first_name', 'last_name', 'email', 'departement', 'telephone', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
-            'role': forms.Select(attrs={'class': 'form-control'}),
         }
         labels = {
             'username': "Nom d'utilisateur",
-            'role': 'Rôle',
         }
     
     def __init__(self, *args, **kwargs):
@@ -53,6 +52,14 @@ class UtilisateurForm(UserCreationForm):
         self.fields['password2'].widget.attrs.update({'class': 'form-control'})
         self.fields['password1'].label = 'Mot de passe'
         self.fields['password2'].label = 'Confirmer le mot de passe'
+    
+    def save(self, commit=True):
+        """Force le rôle à 'etudiant' lors de la création"""
+        user = super().save(commit=False)
+        user.role = 'etudiant'  # 🔒 Toujours étudiant par défaut
+        if commit:
+            user.save()
+        return user
 
 
 class ConnexionForm(forms.Form):
@@ -132,4 +139,49 @@ class InscriptionForm(forms.ModelForm):
         }
         labels = {
             'commentaire': 'Commentaire',
+        }
+
+
+class ProfilForm(forms.ModelForm):
+    """Formulaire de modification du profil utilisateur (sans le rôle)"""
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        label='Prénom',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        label='Nom',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    email = forms.EmailField(
+        required=True,
+        label='Email',
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    departement = forms.CharField(
+        max_length=100,
+        required=False,
+        label='Département',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    telephone = forms.CharField(
+        max_length=20,
+        required=False,
+        label='Téléphone',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    
+    class Meta:
+        model = Utilisateur
+        # Uniquement les champs modifiables par l'utilisateur
+        fields = ['first_name', 'last_name', 'email', 'departement', 'telephone']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'departement': forms.TextInput(attrs={'class': 'form-control'}),
+            'telephone': forms.TextInput(attrs={'class': 'form-control'}),
         }
